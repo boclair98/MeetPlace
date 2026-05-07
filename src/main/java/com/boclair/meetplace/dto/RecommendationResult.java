@@ -5,6 +5,6 @@ import java.util.List;
 public record RecommendationResult(
         double centerLatitude,
         double centerLongitude,
-        List<PlaceRecommendation> recommendations
+        List<CategoryRecommendation> categoryRecommendations
 ) {
 }
