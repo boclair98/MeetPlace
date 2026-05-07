@@ -1,6 +1,6 @@
 package com.boclair.meetplace.service;
 
-import com.boclair.meetplace.domain.MeetingPurpose;
+import com.boclair.meetplace.domain.PlaceCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -10,10 +10,14 @@ record CandidateArea(
         String description,
         double latitude,
         double longitude,
-        Map<MeetingPurpose, List<String>> placeTypes
+        Map<PlaceCategory, List<String>> placeTypes
 ) {
 
-    List<String> getPlaceTypes(MeetingPurpose purpose) {
-        return placeTypes.getOrDefault(purpose, purpose.getRecommendedTypes());
+    boolean supports(PlaceCategory category) {
+        return placeTypes.containsKey(category);
+    }
+
+    List<String> getPlaceTypes(PlaceCategory category) {
+        return placeTypes.getOrDefault(category, category.getDefaultPlaceTypes());
     }
 }
