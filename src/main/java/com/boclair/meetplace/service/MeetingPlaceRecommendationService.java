@@ -1,5 +1,7 @@
 package com.boclair.meetplace.service;
 
+import com.boclair.meetplace.domain.PlaceCategory;
+import com.boclair.meetplace.dto.CategoryRecommendation;
 import com.boclair.meetplace.dto.ParticipantDistance;
 import com.boclair.meetplace.dto.ParticipantRequest;
 import com.boclair.meetplace.dto.PlaceRecommendation;
@@ -13,6 +15,8 @@ import java.util.List;
 
 @Service
 public class MeetingPlaceRecommendationService {
+
+    private static final int RECOMMENDATION_LIMIT_PER_CATEGORY = 3;
 
     private final CandidateAreaCatalog candidateAreaCatalog;
     private final DistanceCalculator distanceCalculator;
@@ -36,18 +40,36 @@ public class MeetingPlaceRecommendationService {
                 .average()
                 .orElseThrow();
 
-        List<PlaceRecommendation> recommendations = candidateAreaCatalog.findAll()
+        List<CategoryRecommendation> categoryRecommendations = request.getCategories()
                 .stream()
-                .map(area -> score(area, participants, centerLatitude, centerLongitude, request))
-                .sorted(Comparator.comparing(PlaceRecommendation::score).reversed())
-                .limit(5)
+                .distinct()
+                .map(category -> recommendByCategory(category, participants, centerLatitude, centerLongitude, request))
                 .toList();
 
-        return new RecommendationResult(centerLatitude, centerLongitude, recommendations);
+        return new RecommendationResult(centerLatitude, centerLongitude, categoryRecommendations);
+    }
+
+    private CategoryRecommendation recommendByCategory(
+            PlaceCategory category,
+            List<ParticipantRequest> participants,
+            double centerLatitude,
+            double centerLongitude,
+            RecommendationRequest request
+    ) {
+        List<PlaceRecommendation> recommendations = candidateAreaCatalog.findAll()
+                .stream()
+                .filter(area -> area.supports(category))
+                .map(area -> score(area, category, participants, centerLatitude, centerLongitude, request))
+                .sorted(Comparator.comparing(PlaceRecommendation::score).reversed())
+                .limit(RECOMMENDATION_LIMIT_PER_CATEGORY)
+                .toList();
+
+        return new CategoryRecommendation(category, recommendations);
     }
 
     private PlaceRecommendation score(
             CandidateArea area,
+            PlaceCategory category,
             List<ParticipantRequest> participants,
             double centerLatitude,
             double centerLongitude,
@@ -77,10 +99,10 @@ public class MeetingPlaceRecommendationService {
                 area.longitude()
         );
 
-        int score = calculateScore(averageDistance, fairnessGap, centerDistance, request);
+        int score = calculateScore(averageDistance, fairnessGap, centerDistance, area, category, request);
         String fairnessLevel = getFairnessLevel(fairnessGap);
         int estimatedTravelMinutes = estimateTravelMinutes(averageDistance);
-        String reason = buildReason(averageDistance, fairnessGap, centerDistance, request, fairnessLevel);
+        String reason = buildReason(area, category, averageDistance, fairnessGap, centerDistance, request, fairnessLevel);
 
         return new PlaceRecommendation(
                 area.name(),
@@ -95,7 +117,7 @@ public class MeetingPlaceRecommendationService {
                 fairnessLevel,
                 reason,
                 score,
-                area.getPlaceTypes(request.getPurpose()),
+                area.getPlaceTypes(category),
                 distances
         );
     }
@@ -104,9 +126,13 @@ public class MeetingPlaceRecommendationService {
             double averageDistance,
             double fairnessGap,
             double centerDistance,
+            CandidateArea area,
+            PlaceCategory category,
             RecommendationRequest request
     ) {
+        double categoryFitBonus = Math.min(10, area.getPlaceTypes(category).size() * 2.5);
         double rawScore = 100
+                + categoryFitBonus
                 - averageDistance * request.getMode().getAverageDistanceWeight()
                 - fairnessGap * request.getMode().getFairnessGapWeight()
                 - centerDistance * request.getMode().getCenterDistanceWeight();
@@ -131,20 +157,23 @@ public class MeetingPlaceRecommendationService {
     }
 
     private String buildReason(
+            CandidateArea area,
+            PlaceCategory category,
             double averageDistance,
             double fairnessGap,
             double centerDistance,
             RecommendationRequest request,
             String fairnessLevel
     ) {
-        return "%s 기준에서 평균 이동거리 %.1fkm, 거리 편차 %.1fkm로 %s 수준입니다. 중심점과 %.1fkm 떨어져 있고, %s 모임에 맞는 장소 선택지가 있습니다."
+        return "%s 기준으로 평균 이동거리 %.1fkm, 거리 편차 %.1fkm라 %s한 편입니다. 계산된 중간점과 %.1fkm 떨어져 있고, %s 선택지가 있는 %s 약속지입니다."
                 .formatted(
                         request.getMode().getLabel(),
                         round(averageDistance),
                         round(fairnessGap),
                         fairnessLevel,
                         round(centerDistance),
-                        request.getPurpose().getLabel()
+                        category.getLabel(),
+                        area.name()
                 );
     }
 
