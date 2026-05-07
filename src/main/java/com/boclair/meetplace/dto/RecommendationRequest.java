@@ -1,6 +1,6 @@
 package com.boclair.meetplace.dto;
 
-import com.boclair.meetplace.domain.MeetingPurpose;
+import com.boclair.meetplace.domain.PlaceCategory;
 import com.boclair.meetplace.domain.RecommendationMode;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -11,8 +11,12 @@ import java.util.List;
 
 public class RecommendationRequest {
 
-    @NotNull(message = "모임 목적을 선택해주세요.")
-    private MeetingPurpose purpose = MeetingPurpose.CAFE;
+    @Size(min = 1, message = "추천받을 장소 카테고리를 1개 이상 선택해주세요.")
+    private List<PlaceCategory> categories = new ArrayList<>(List.of(
+            PlaceCategory.CAFE,
+            PlaceCategory.RESTAURANT,
+            PlaceCategory.KARAOKE
+    ));
 
     @NotNull(message = "추천 기준을 선택해주세요.")
     private RecommendationMode mode = RecommendationMode.BALANCED;
@@ -26,12 +30,12 @@ public class RecommendationRequest {
         participants.add(new ParticipantRequest("친구", 37.5133, 127.1002));
     }
 
-    public MeetingPurpose getPurpose() {
-        return purpose;
+    public List<PlaceCategory> getCategories() {
+        return categories;
     }
 
-    public void setPurpose(MeetingPurpose purpose) {
-        this.purpose = purpose;
+    public void setCategories(List<PlaceCategory> categories) {
+        this.categories = categories;
     }
 
     public RecommendationMode getMode() {
