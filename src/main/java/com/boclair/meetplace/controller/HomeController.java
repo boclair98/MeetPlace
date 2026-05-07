@@ -1,6 +1,7 @@
 package com.boclair.meetplace.controller;
 
 import com.boclair.meetplace.domain.MeetingPurpose;
+import com.boclair.meetplace.domain.RecommendationMode;
 import com.boclair.meetplace.dto.RecommendationRequest;
 import com.boclair.meetplace.dto.RecommendationResult;
 import com.boclair.meetplace.service.MeetingPlaceRecommendationService;
@@ -25,6 +26,7 @@ public class HomeController {
     public String index(Model model) {
         model.addAttribute("request", new RecommendationRequest());
         model.addAttribute("purposes", MeetingPurpose.values());
+        model.addAttribute("modes", RecommendationMode.values());
         return "index";
     }
 
@@ -35,6 +37,7 @@ public class HomeController {
             Model model
     ) {
         model.addAttribute("purposes", MeetingPurpose.values());
+        model.addAttribute("modes", RecommendationMode.values());
 
         if (bindingResult.hasErrors()) {
             return "index";
