@@ -1,6 +1,6 @@
 package com.boclair.meetplace.controller;
 
-import com.boclair.meetplace.domain.MeetingPurpose;
+import com.boclair.meetplace.domain.PlaceCategory;
 import com.boclair.meetplace.domain.RecommendationMode;
 import com.boclair.meetplace.dto.RecommendationRequest;
 import com.boclair.meetplace.dto.RecommendationResult;
@@ -24,9 +24,8 @@ public class HomeController {
 
     @GetMapping("/")
     public String index(Model model) {
+        addFormOptions(model);
         model.addAttribute("request", new RecommendationRequest());
-        model.addAttribute("purposes", MeetingPurpose.values());
-        model.addAttribute("modes", RecommendationMode.values());
         return "index";
     }
 
@@ -36,8 +35,7 @@ public class HomeController {
             BindingResult bindingResult,
             Model model
     ) {
-        model.addAttribute("purposes", MeetingPurpose.values());
-        model.addAttribute("modes", RecommendationMode.values());
+        addFormOptions(model);
 
         if (bindingResult.hasErrors()) {
             return "index";
@@ -46,5 +44,10 @@ public class HomeController {
         RecommendationResult result = recommendationService.recommend(request);
         model.addAttribute("result", result);
         return "index";
+    }
+
+    private void addFormOptions(Model model) {
+        model.addAttribute("categories", PlaceCategory.values());
+        model.addAttribute("modes", RecommendationMode.values());
     }
 }
