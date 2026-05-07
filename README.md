@@ -1,76 +1,47 @@
 # MeetPlace
 
-MeetPlace는 여러 사람의 출발지를 기준으로 약속 후보 지역을 추천하는 Spring Boot 웹 서비스입니다.
-
-현재 버전은 지도 API 없이 좌표 기반으로 동작합니다. 참가자들의 위치 중심점, 후보 지역까지의 평균 거리, 참가자 간 거리 편차를 함께 계산해서 약속 장소 후보를 정렬합니다.
+여러 명이 만날 때 출발지와 원하는 장소 카테고리를 기준으로 중간 약속 지역을 추천하는 Spring Boot 웹 서비스입니다.
 
 ## 기능
 
-- 참가자 이름, 위도, 경도 입력
-- 모임 목적 선택
-  - 카페
-  - 식사
-  - 술자리
-  - 스터디
-  - 데이트
-- 추천 기준 선택
-  - 균형형
-  - 짧은 이동 우선
-  - 공정성 우선
-- 서울 주요 후보 지역 추천
-- 후보별 추천 점수 표시
-- 후보별 추천 이유 표시
-- 평균 거리, 최대 거리, 거리 편차, 중심점 거리 표시
-- 예상 이동 시간 표시
-- 목적별 추천 장소 타입 표시
+- 참가자 2명부터 8명까지 출발 좌표 입력
+- 카페, 맛집, 피시방, 노래방, 술집, 스터디룸, 영화관, 볼링장 다중 선택
+- 선택한 카테고리별 추천 지역 Top 3 제공
+- 평균 이동거리, 최대 이동거리, 거리 편차, 예상 이동시간 표시
+- 균형형, 짧은 이동 우선, 공정성 우선 추천 기준 지원
+- 서울 주요 상권 후보 데이터를 기반으로 API 키 없이 실행 가능
 
-## 추천 기준
+## 추천 방식
 
-### 균형형
+1. 참가자 좌표의 평균으로 중간 좌표를 계산합니다.
+2. 후보 지역별로 참가자 각각의 이동거리를 계산합니다.
+3. 평균 이동거리, 거리 편차, 중간 좌표와의 거리, 카테고리 적합도를 점수화합니다.
+4. 사용자가 선택한 카테고리마다 점수가 높은 지역을 따로 보여줍니다.
 
-평균 거리, 거리 편차, 중심점과의 거리를 모두 적당히 반영합니다.
+## 화면 구성
 
-### 짧은 이동 우선
-
-전체 평균 이동거리를 더 강하게 반영합니다. 가까운 후보가 더 높은 점수를 받습니다.
-
-### 공정성 우선
-
-참가자 간 거리 편차를 더 강하게 반영합니다. 특정 사람만 지나치게 멀어지는 후보를 낮게 평가합니다.
-
-## 추천 점수
+첫 화면에서 바로 약속 조건을 넣고 결과를 확인하는 구조입니다.
 
 ```text
-score = 100
-      - 평균 거리 패널티
-      - 참가자 간 거리 편차 패널티
-      - 중심점과 후보 지역 간 거리 패널티
+┌──────────────────────────────────────────────────────────────┐
+│ MeetPlace                                                    │
+│ 여러 사람이 편하게 만날 중간 장소를 찾습니다.                 │
+├──────────────────────────────┬───────────────────────────────┤
+│ 약속 조건                    │ 계산 방식                     │
+│ - 추천 기준 선택             │ - 중간 좌표 계산              │
+│ - 카테고리 다중 선택         │ - 거리 점수 계산              │
+│   카페 맛집 피시방 노래방... │ - 카테고리별 후보 필터링      │
+│ - 참가자 출발지 입력         │                               │
+└──────────────────────────────┴───────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│ 카테고리별 추천 결과                                         │
+│ 카페     1. 홍대입구  2. 신촌    3. 종각                    │
+│ 맛집     1. 종각      2. 강남역  3. 을지로입구              │
+│ 노래방   1. 홍대입구  2. 건대입구 3. 강남역                 │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-추천 기준에 따라 각 패널티의 가중치가 달라집니다.
-
-## 프로젝트 구조
-
-```text
-src/main/java/com/boclair/meetplace
-├── controller
-│   └── HomeController.java
-├── domain
-│   ├── MeetingPurpose.java
-│   └── RecommendationMode.java
-├── dto
-│   ├── ParticipantDistance.java
-│   ├── ParticipantRequest.java
-│   ├── PlaceRecommendation.java
-│   ├── RecommendationRequest.java
-│   └── RecommendationResult.java
-├── service
-│   ├── CandidateArea.java
-│   ├── CandidateAreaCatalog.java
-│   ├── DistanceCalculator.java
-│   └── MeetingPlaceRecommendationService.java
-└── MeetPlaceApplication.java
-```
+사용자는 카테고리를 여러 개 고를 수 있고, 서비스는 같은 참가자 출발지를 기준으로 카테고리마다 따로 좋은 지역을 추천합니다. 그래서 "밥 먹을 거면 종각, 노래방까지 갈 거면 홍대입구"처럼 약속의 성격에 따라 선택지를 비교할 수 있습니다.
 
 ## 실행
 
@@ -78,21 +49,34 @@ src/main/java/com/boclair/meetplace
 gradle bootRun
 ```
 
+브라우저에서 `http://localhost:8080`으로 접속합니다.
+
+## 주요 구조
+
 ```text
-http://localhost:8081
+src/main/java/com/boclair/meetplace
+├── controller
+│   └── HomeController.java
+├── domain
+│   ├── PlaceCategory.java
+│   └── RecommendationMode.java
+├── dto
+│   ├── CategoryRecommendation.java
+│   ├── ParticipantRequest.java
+│   ├── PlaceRecommendation.java
+│   ├── RecommendationRequest.java
+│   └── RecommendationResult.java
+└── service
+    ├── CandidateAreaCatalog.java
+    ├── DistanceCalculator.java
+    └── MeetingPlaceRecommendationService.java
 ```
 
-## 테스트
+## 이후 확장 방향
 
-```bash
-gradle test
-```
+- Kakao Local API 또는 Naver Local API로 실제 장소 목록 조회
+- 지하철역, 도로 교통, 도보 시간을 반영한 이동시간 계산
+- 후보 지역 안에서 실제 매장 영업 여부와 평점 반영
+- 사용자별 즐겨찾기 장소와 최근 약속 기록 저장
 
-## 다음 개발
-
-- 주소 검색 API 연결
-- 실제 장소 검색 API 연결
-- 대중교통 소요 시간 기반 추천
-- 참가자 추가/삭제 UI
-- 후보 지역 투표
-- 약속 공유 카드 생성
+외부 API를 붙일 때는 키를 코드에 넣지 않고 환경변수로 관리합니다.
