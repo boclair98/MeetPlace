@@ -10,31 +10,54 @@
 <main class="shell">
     <section class="workspace">
         <div class="intro">
-            <p class="eyebrow">Fair meeting planner</p>
-            <h1>모두에게 덜 불공평한 약속 장소 찾기</h1>
-            <p class="lead">참가자 출발 좌표를 넣으면 서울 주요 후보지 중 평균 거리와 편차가 낮은 지역을 추천합니다.</p>
+            <p class="eyebrow">MeetPlace</p>
+            <h1>각자 출발지를 넣고 가장 괜찮은 약속 지역을 고르세요</h1>
+            <p class="lead">
+                평균 거리, 거리 편차, 중심점과의 거리를 함께 계산해 후보 지역을 추천합니다.
+                모임 목적과 추천 기준을 바꾸면 결과가 달라집니다.
+            </p>
         </div>
 
         <form class="panel" th:action="@{/recommend}" th:object="${request}" method="post">
-            <div class="form-head">
-                <div>
-                    <h2>출발지 입력</h2>
-                    <p>처음 버전은 좌표 입력 방식입니다. 다음 단계에서 주소 검색 API를 붙이면 됩니다.</p>
-                </div>
-                <select th:field="*{purpose}" aria-label="모임 목적">
-                    <option th:each="purpose : ${purposes}" th:value="${purpose}" th:text="${purpose.label}"></option>
-                </select>
+            <div class="controls">
+                <label>
+                    <span>모임 목적</span>
+                    <select th:field="*{purpose}">
+                        <option th:each="purpose : ${purposes}"
+                                th:value="${purpose}"
+                                th:text="${purpose.label}">
+                        </option>
+                    </select>
+                </label>
+                <label>
+                    <span>추천 기준</span>
+                    <select th:field="*{mode}">
+                        <option th:each="mode : ${modes}"
+                                th:value="${mode}"
+                                th:text="${mode.label}">
+                        </option>
+                    </select>
+                </label>
             </div>
 
             <div class="participants">
                 <div class="participant-card" th:each="participant, stat : *{participants}">
-                    <label><span>이름</span><input type="text" th:field="*{participants[__${stat.index}__].name}"></label>
-                    <label><span>위도</span><input type="number" step="0.0001" th:field="*{participants[__${stat.index}__].latitude}"></label>
-                    <label><span>경도</span><input type="number" step="0.0001" th:field="*{participants[__${stat.index}__].longitude}"></label>
+                    <label>
+                        <span>이름</span>
+                        <input type="text" th:field="*{participants[__${stat.index}__].name}">
+                    </label>
+                    <label>
+                        <span>위도</span>
+                        <input type="number" step="0.0001" th:field="*{participants[__${stat.index}__].latitude}">
+                    </label>
+                    <label>
+                        <span>경도</span>
+                        <input type="number" step="0.0001" th:field="*{participants[__${stat.index}__].longitude}">
+                    </label>
                 </div>
             </div>
 
-            <button type="submit">추천 받기</button>
+            <button type="submit">후보 지역 추천</button>
         </form>
     </section>
 
@@ -42,9 +65,9 @@
         <div class="result-head">
             <div>
                 <p class="eyebrow">Recommendation</p>
-                <h2>추천 후보</h2>
+                <h2>추천 후보 5곳</h2>
             </div>
-            <p th:text="'중심 좌표: ' + ${#numbers.formatDecimal(result.centerLatitude, 1, 4)} + ', ' + ${#numbers.formatDecimal(result.centerLongitude, 1, 4)}"></p>
+            <p th:text="'중심 좌표 ' + ${#numbers.formatDecimal(result.centerLatitude, 1, 4)} + ', ' + ${#numbers.formatDecimal(result.centerLongitude, 1, 4)}"></p>
         </div>
 
         <div class="recommendations">
@@ -52,16 +75,28 @@
                 <div class="rank" th:text="${stat.index + 1}"></div>
                 <div class="card-main">
                     <div class="title-line">
-                        <h3 th:text="${place.areaName}">홍대입구</h3>
+                        <div>
+                            <h3 th:text="${place.areaName}">홍대입구</h3>
+                            <p th:text="${place.description}">지역 설명</p>
+                        </div>
                         <strong th:text="${place.score} + '점'">92점</strong>
                     </div>
-                    <p th:text="${place.description}"></p>
+
+                    <p class="reason" th:text="${place.reason}">추천 이유</p>
+
                     <div class="metrics">
                         <span th:text="'평균 ' + ${place.averageDistanceKm} + 'km'"></span>
                         <span th:text="'최대 ' + ${place.maxDistanceKm} + 'km'"></span>
                         <span th:text="'편차 ' + ${place.fairnessGapKm} + 'km'"></span>
+                        <span th:text="'중심점 ' + ${place.centerDistanceKm} + 'km'"></span>
+                        <span th:text="'예상 ' + ${place.estimatedTravelMinutes} + '분'"></span>
+                        <span th:text="${place.fairnessLevel}"></span>
                     </div>
-                    <div class="chips"><span th:each="type : ${place.recommendedPlaceTypes}" th:text="${type}"></span></div>
+
+                    <div class="chips">
+                        <span th:each="type : ${place.recommendedPlaceTypes}" th:text="${type}"></span>
+                    </div>
+
                     <div class="distances">
                         <div th:each="distance : ${place.participantDistances}">
                             <span th:text="${distance.name}">나</span>
