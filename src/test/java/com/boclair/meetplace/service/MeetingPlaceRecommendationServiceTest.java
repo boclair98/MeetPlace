@@ -30,6 +30,8 @@ class MeetingPlaceRecommendationServiceTest {
 
         assertThat(result.recommendations()).hasSize(5);
         assertThat(result.recommendations().get(0).score()).isGreaterThan(0);
+        assertThat(result.recommendations().get(0).reason()).isNotBlank();
+        assertThat(result.recommendations().get(0).estimatedTravelMinutes()).isGreaterThan(0);
         assertThat(result.recommendations().get(0).participantDistances()).hasSize(2);
     }
 }
