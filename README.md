@@ -72,13 +72,7 @@ src/main/java/com/boclair/meetplace
 ## 실행 방법
 
 ```bash
-./gradlew bootRun
-```
-
-Windows PowerShell:
-
-```powershell
-.\gradlew.bat bootRun
+gradle bootRun
 ```
 
 기본 포트는 `8081`입니다.
@@ -90,7 +84,7 @@ http://localhost:8081
 ## 테스트
 
 ```bash
-./gradlew test
+gradle test
 ```
 
 ## 현재 한계
@@ -102,6 +96,7 @@ http://localhost:8081
 
 ## 다음 고도화 방향
 
+- Gradle wrapper 추가
 - Kakao Local API 또는 Naver Local API로 주소 검색 추가
 - 지도 API로 실제 장소 후보 조회
 - 대중교통 소요 시간 기반 공정성 계산
