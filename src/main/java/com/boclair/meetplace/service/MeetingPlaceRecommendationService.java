@@ -77,7 +77,10 @@ public class MeetingPlaceRecommendationService {
                 area.longitude()
         );
 
-        int score = calculateScore(averageDistance, fairnessGap, centerDistance);
+        int score = calculateScore(averageDistance, fairnessGap, centerDistance, request);
+        String fairnessLevel = getFairnessLevel(fairnessGap);
+        int estimatedTravelMinutes = estimateTravelMinutes(averageDistance);
+        String reason = buildReason(averageDistance, fairnessGap, centerDistance, request, fairnessLevel);
 
         return new PlaceRecommendation(
                 area.name(),
@@ -87,18 +90,62 @@ public class MeetingPlaceRecommendationService {
                 round(averageDistance),
                 round(stats.getMax()),
                 round(fairnessGap),
+                round(centerDistance),
+                estimatedTravelMinutes,
+                fairnessLevel,
+                reason,
                 score,
                 area.getPlaceTypes(request.getPurpose()),
                 distances
         );
     }
 
-    private int calculateScore(double averageDistance, double fairnessGap, double centerDistance) {
+    private int calculateScore(
+            double averageDistance,
+            double fairnessGap,
+            double centerDistance,
+            RecommendationRequest request
+    ) {
         double rawScore = 100
-                - averageDistance * 2.1
-                - fairnessGap * 3.2
-                - centerDistance * 4.0;
+                - averageDistance * request.getMode().getAverageDistanceWeight()
+                - fairnessGap * request.getMode().getFairnessGapWeight()
+                - centerDistance * request.getMode().getCenterDistanceWeight();
         return Math.max(0, Math.min(100, (int) Math.round(rawScore)));
+    }
+
+    private String getFairnessLevel(double fairnessGap) {
+        if (fairnessGap <= 3.0) {
+            return "매우 공정";
+        }
+        if (fairnessGap <= 6.0) {
+            return "공정";
+        }
+        if (fairnessGap <= 10.0) {
+            return "보통";
+        }
+        return "편차 큼";
+    }
+
+    private int estimateTravelMinutes(double averageDistance) {
+        return Math.max(10, (int) Math.round(averageDistance * 4.2 + 8));
+    }
+
+    private String buildReason(
+            double averageDistance,
+            double fairnessGap,
+            double centerDistance,
+            RecommendationRequest request,
+            String fairnessLevel
+    ) {
+        return "%s 기준에서 평균 이동거리 %.1fkm, 거리 편차 %.1fkm로 %s 수준입니다. 중심점과 %.1fkm 떨어져 있고, %s 모임에 맞는 장소 선택지가 있습니다."
+                .formatted(
+                        request.getMode().getLabel(),
+                        round(averageDistance),
+                        round(fairnessGap),
+                        fairnessLevel,
+                        round(centerDistance),
+                        request.getPurpose().getLabel()
+                );
     }
 
     private double round(double value) {
