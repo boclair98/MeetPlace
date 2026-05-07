@@ -15,6 +15,10 @@ const presets = [
 
 const participants = document.querySelector("#participants");
 const addButton = document.querySelector("#addParticipant");
+const participantCount = document.querySelector("#participantCount");
+const categoryCount = document.querySelector("#categoryCount");
+const selectedCategories = document.querySelector("#selectedCategories");
+const participantSummary = document.querySelector("#participantSummary");
 
 function hydratePresetSelect(select) {
   if (select.dataset.ready) {
@@ -41,11 +45,17 @@ function wireCard(card) {
 
   select.addEventListener("change", () => {
     if (!select.value) {
+      updateSummary();
       return;
     }
     const [lat, lng] = select.value.split(",");
     latInput.value = Number(lat).toFixed(4);
     lngInput.value = Number(lng).toFixed(4);
+    updateSummary();
+  });
+
+  card.querySelectorAll("input").forEach((input) => {
+    input.addEventListener("input", updateSummary);
   });
 
   removeButton.addEventListener("click", () => {
@@ -54,6 +64,7 @@ function wireCard(card) {
     }
     card.remove();
     reindexCards();
+    updateSummary();
   });
 }
 
@@ -67,6 +78,33 @@ function reindexCards() {
   });
 }
 
+function updateSummary() {
+  const participantCards = Array.from(participants.querySelectorAll(".participant-card"));
+  const checkedCategories = Array.from(document.querySelectorAll(".category-option input:checked"));
+
+  participantCount.textContent = participantCards.length;
+  categoryCount.textContent = checkedCategories.length;
+
+  selectedCategories.textContent = checkedCategories.length
+    ? checkedCategories.map((input) => input.dataset.label || input.value).join(", ")
+    : "카테고리를 선택하면 여기에 표시됩니다.";
+
+  participantSummary.textContent = participantCards
+    .map((card) => {
+      const name = card.querySelector("input[name$='.name']").value || "이름 없음";
+      const preset = card.querySelector(".preset-select");
+      const selectedPlace = preset.options[preset.selectedIndex]?.textContent;
+      const lat = card.querySelector(".latitude-input").value;
+      const lng = card.querySelector(".longitude-input").value;
+
+      if (selectedPlace && selectedPlace !== "직접 입력") {
+        return `${name}: ${selectedPlace}`;
+      }
+      return `${name}: ${Number(lat).toFixed(3)}, ${Number(lng).toFixed(3)}`;
+    })
+    .join(" / ");
+}
+
 function createCard(index) {
   const card = document.createElement("div");
   card.className = "participant-card";
@@ -75,25 +113,11 @@ function createCard(index) {
       <strong>참가자 ${index + 1}</strong>
       <button class="remove-button" type="button">삭제</button>
     </div>
-    <label>
-      <span>이름</span>
-      <input type="text" name="participants[${index}].name" value="참가자 ${index + 1}">
-    </label>
-    <label>
-      <span>출발 지역</span>
-      <select class="preset-select">
-        <option value="">직접 입력</option>
-      </select>
-    </label>
+    <label><span>이름</span><input type="text" name="participants[${index}].name" value="참가자 ${index + 1}"></label>
+    <label><span>출발 지역</span><select class="preset-select"><option value="">직접 입력</option></select></label>
     <div class="coord-grid">
-      <label>
-        <span>위도</span>
-        <input class="latitude-input" type="number" step="0.0001" name="participants[${index}].latitude" value="37.5702">
-      </label>
-      <label>
-        <span>경도</span>
-        <input class="longitude-input" type="number" step="0.0001" name="participants[${index}].longitude" value="126.9830">
-      </label>
+      <label><span>위도</span><input class="latitude-input" type="number" step="0.0001" name="participants[${index}].latitude" value="37.5702"></label>
+      <label><span>경도</span><input class="longitude-input" type="number" step="0.0001" name="participants[${index}].longitude" value="126.9830"></label>
     </div>
   `;
   wireCard(card);
@@ -101,6 +125,10 @@ function createCard(index) {
 }
 
 document.querySelectorAll(".participant-card").forEach(wireCard);
+document.querySelectorAll(".category-option input").forEach((input) => {
+  input.addEventListener("change", updateSummary);
+});
+updateSummary();
 
 addButton.addEventListener("click", () => {
   const count = participants.querySelectorAll(".participant-card").length;
@@ -108,4 +136,5 @@ addButton.addEventListener("click", () => {
     return;
   }
   participants.appendChild(createCard(count));
+  updateSummary();
 });
