@@ -10,6 +10,10 @@ public record PlaceRecommendation(
         double averageDistanceKm,
         double maxDistanceKm,
         double fairnessGapKm,
+        double centerDistanceKm,
+        int estimatedTravelMinutes,
+        String fairnessLevel,
+        String reason,
         int score,
         List<String> recommendedPlaceTypes,
         List<ParticipantDistance> participantDistances
