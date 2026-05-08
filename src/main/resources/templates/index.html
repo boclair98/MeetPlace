@@ -40,7 +40,7 @@
                     <p class="eyebrow">Planner</p>
                     <h2>약속 조건</h2>
                 </div>
-                <span class="status-pill">API 없이 계산 가능</span>
+                <span class="status-pill">외부 장소 API 연동</span>
             </div>
 
             <div class="stepper">
@@ -156,7 +156,7 @@
                 </div>
                 <div>
                     <b>추천 결과</b>
-                    <span>카테고리마다 조건에 맞는 후보 지역을 따로 계산합니다.</span>
+                    <span>카테고리마다 실제 장소 검색 결과와 리뷰 정보를 함께 계산합니다.</span>
                 </div>
             </div>
 
@@ -173,8 +173,8 @@
                 </div>
                 <div>
                     <span>03</span>
-                    <b>카테고리별 정렬</b>
-                    <p>카페, 맛집, 노래방처럼 업종별로 결과를 나눕니다.</p>
+                    <b>리뷰 품질 반영</b>
+                    <p>실제 장소의 평점과 리뷰 수를 추천 점수에 함께 넣습니다.</p>
                 </div>
             </div>
         </aside>
@@ -219,10 +219,15 @@
                     <b th:text="${#lists.size(group.recommendations)} + '곳'">3곳</b>
                 </div>
 
-                <div class="recommendations">
+                <div class="empty-result" th:if="${#lists.isEmpty(group.recommendations)}">
+                    <b>아직 가져온 장소가 없습니다.</b>
+                    <p>카카오 Local API 키를 설정하면 중간 좌표 주변의 실제 장소를 검색하고, Google Places 키가 있으면 평점과 리뷰를 함께 보여줍니다.</p>
+                </div>
+
+                <div class="recommendations" th:if="${!#lists.isEmpty(group.recommendations)}">
                     <article class="recommendation-card"
                              th:each="place, stat : ${group.recommendations}"
-                             th:attr="data-place-name=${place.areaName},data-category-name=${group.category.label},data-score=${place.score},data-average-distance=${place.averageDistanceKm},data-travel-minutes=${place.estimatedTravelMinutes}">
+                             th:attr="data-place-name=${place.areaName},data-category-name=${group.category.label},data-score=${place.score},data-average-distance=${place.averageDistanceKm},data-travel-minutes=${place.estimatedTravelMinutes},data-rating=${place.rating},data-review-count=${place.reviewCount},data-place-url=${place.placeUrl}">
                         <div class="rank" th:text="${stat.index + 1}">1</div>
                         <div class="card-main">
                             <div class="title-line">
@@ -234,6 +239,16 @@
                             </div>
 
                             <p class="reason" th:text="${place.reason}">추천 이유</p>
+
+                            <div class="review-strip">
+                                <span th:if="${place.rating > 0}" th:text="'평점 ' + ${place.rating}">평점 4.6</span>
+                                <span th:if="${place.reviewCount > 0}" th:text="'리뷰 ' + ${place.reviewCount} + '개'">리뷰 520개</span>
+                                <span th:text="${place.source}">Kakao Local</span>
+                            </div>
+
+                            <blockquote class="review-snippet" th:if="${!#strings.isEmpty(place.reviewSnippet)}" th:text="${place.reviewSnippet}">
+                                단체로 방문하기 좋다는 리뷰가 많습니다.
+                            </blockquote>
 
                             <div class="metrics">
                                 <span th:text="'평균 ' + ${place.averageDistanceKm} + 'km'">평균 4.2km</span>
@@ -256,6 +271,7 @@
                             </div>
 
                             <button class="choose-button" type="button">이 장소로 정하기</button>
+                            <a class="map-link" th:if="${!#strings.isEmpty(place.placeUrl)}" th:href="${place.placeUrl}" target="_blank" rel="noreferrer">지도에서 보기</a>
                         </div>
                     </article>
                 </div>
