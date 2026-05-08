@@ -22,9 +22,9 @@
 body {
     margin: 0;
     background:
-            radial-gradient(circle at 18% 10%, rgba(204, 251, 241, 0.9), transparent 26%),
-            radial-gradient(circle at 82% 3%, rgba(219, 234, 254, 0.9), transparent 24%),
-            linear-gradient(180deg, #f9fbfb 0, #f4f7f6 360px),
+            linear-gradient(135deg, rgba(204, 251, 241, 0.7) 0, transparent 34%),
+            linear-gradient(225deg, rgba(219, 234, 254, 0.8) 0, transparent 32%),
+            linear-gradient(180deg, #f9fbfb 0, #f4f7f6 420px),
             var(--bg);
     color: var(--ink);
     font-family: Arial, "Noto Sans KR", sans-serif;
@@ -298,19 +298,6 @@ label span {
     background: #fbfcfd;
 }
 
-.mode-guide b,
-.insight-list b {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 13px;
-}
-
-.mode-guide span,
-.insight-list span {
-    font-size: 12px;
-    line-height: 1.45;
-}
-
 .bundle-actions {
     display: flex;
     gap: 8px;
@@ -331,6 +318,19 @@ label span {
     border-color: var(--accent);
     background: var(--soft);
     color: var(--accent-dark);
+}
+
+.mode-guide b,
+.insight-list b {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.mode-guide span,
+.insight-list span {
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .category-grid {
@@ -559,7 +559,12 @@ button {
 }
 
 .category-result {
+    display: none;
     padding: 18px;
+}
+
+.category-result.active {
+    display: block;
 }
 
 .category-result-head {
@@ -590,6 +595,17 @@ button {
     display: grid;
     grid-template-columns: 48px 1fr;
     overflow: hidden;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.recommendation-card:hover,
+.recommendation-card.selected {
+    border-color: var(--accent);
+    box-shadow: 0 16px 38px rgba(15, 118, 110, 0.12);
+}
+
+.recommendation-card.selected {
+    transform: translateY(-1px);
 }
 
 .rank {
@@ -651,6 +667,18 @@ button {
     background: #f8fafc;
 }
 
+.distances {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.distance-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    align-items: center;
+}
+
 .distances span {
     display: inline;
     color: var(--muted);
@@ -658,6 +686,101 @@ button {
 
 .distances b {
     margin-left: 6px;
+}
+
+.distance-row i {
+    grid-column: 1 / -1;
+    display: block;
+    height: 5px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #e6ebf2;
+}
+
+.distance-row em {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width 0.24s ease;
+}
+
+.choose-button {
+    width: 100%;
+    margin-top: 14px;
+    border: 1px solid var(--accent);
+    background: #fff;
+    color: var(--accent-dark);
+}
+
+.choose-button:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+.result-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.44fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.result-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: start;
+}
+
+.result-tabs button {
+    min-height: 38px;
+    border: 1px solid var(--line);
+    padding: 0 12px;
+    background: #fff;
+    color: #344054;
+}
+
+.result-tabs button.active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+}
+
+.share-panel {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: #fff;
+}
+
+.share-panel.ready {
+    border-color: var(--accent);
+    background: var(--soft);
+}
+
+.share-panel b {
+    display: block;
+    margin-bottom: 7px;
+}
+
+.share-panel p {
+    margin-bottom: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.share-panel button {
+    width: 100%;
+    min-height: 38px;
+    background: var(--ink);
+    color: #fff;
+}
+
+.share-panel button:disabled {
+    cursor: not-allowed;
+    background: #98a2b3;
 }
 
 .preview-stack {
@@ -723,7 +846,8 @@ button {
 
     .category-grid,
     .mode-guide,
-    .stepper {
+    .stepper,
+    .result-tools {
         grid-template-columns: repeat(2, 1fr);
     }
 }
@@ -738,18 +862,6 @@ button {
         font-size: 32px;
     }
 
-    .app-header,
-    .result-head,
-    .section-title,
-    .title-line,
-    .category-result-head {
-        display: block;
-    }
-
-    .app-header nav {
-        margin-top: 10px;
-    }
-
     .panel {
         padding: 16px;
     }
@@ -757,9 +869,18 @@ button {
     .category-grid,
     .mode-guide,
     .stepper,
+    .result-tools,
     .participant-card,
-    .coord-grid {
+    .coord-grid,
+    .distances {
         grid-template-columns: 1fr;
+    }
+
+    .result-head,
+    .section-title,
+    .title-line,
+    .category-result-head {
+        display: block;
     }
 
     .ghost-button {
