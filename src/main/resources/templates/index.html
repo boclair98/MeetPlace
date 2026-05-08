@@ -19,8 +19,8 @@
     <section class="hero">
         <div>
             <p class="eyebrow">MeetPlace</p>
-            <h1>여러 사람이 편하게 만날 중간 장소를 찾습니다.</h1>
-            <p class="lead">출발지를 넣고 카페, 맛집, 피시방, 노래방 같은 업종을 고르면 카테고리별로 만나기 좋은 후보 지역을 계산합니다.</p>
+            <h1>여러 사람이 만나기 좋은 중간 장소를 빠르게 찾습니다.</h1>
+            <p class="lead">출발지를 넣고 카페, 맛집, PC방, 노래방 같은 업종을 고르면 카테고리별로 이동 부담이 적은 후보 지역을 계산합니다.</p>
             <div class="hero-actions">
                 <a class="hero-link primary" href="#planner">약속 조건 입력</a>
                 <a class="hero-link" href="#how">추천 방식 보기</a>
@@ -53,10 +53,7 @@
             <label class="field">
                 <span>추천 기준</span>
                 <select th:field="*{mode}">
-                    <option th:each="mode : ${modes}"
-                            th:value="${mode}"
-                            th:text="${mode.label}">
-                    </option>
+                    <option th:each="mode : ${modes}" th:value="${mode}" th:text="${mode.label}"></option>
                 </select>
             </label>
 
@@ -70,7 +67,7 @@
             <div class="section-title">
                 <div>
                     <h2>카테고리</h2>
-                    <p>같은 중간점이라도 업종마다 좋은 지역이 달라질 수 있습니다.</p>
+                    <p>같은 중간 지점이라도 업종마다 좋은 지역이 달라질 수 있습니다.</p>
                 </div>
             </div>
 
@@ -192,8 +189,28 @@
             <p th:text="'중간 좌표 ' + ${#numbers.formatDecimal(result.centerLatitude, 1, 4)} + ', ' + ${#numbers.formatDecimal(result.centerLongitude, 1, 4)}"></p>
         </div>
 
+        <div class="result-tools">
+            <div class="result-tabs" role="tablist">
+                <button type="button"
+                        th:each="group, stat : ${result.categoryRecommendations}"
+                        th:classappend="${stat.first} ? 'active'"
+                        th:attr="data-result-tab=${stat.index}"
+                        th:text="${group.category.label}">
+                    카페
+                </button>
+            </div>
+            <div class="share-panel" id="sharePanel">
+                <b>선택한 장소가 없습니다.</b>
+                <p id="shareText">마음에 드는 후보를 고르면 약속 공유 문구가 만들어집니다.</p>
+                <button type="button" id="copyShare" disabled>공유 문구 복사</button>
+            </div>
+        </div>
+
         <div class="category-results">
-            <section class="category-result" th:each="group : ${result.categoryRecommendations}">
+            <section class="category-result"
+                     th:each="group, groupStat : ${result.categoryRecommendations}"
+                     th:classappend="${groupStat.first} ? 'active'"
+                     th:attr="data-result-panel=${groupStat.index}">
                 <div class="category-result-head">
                     <div>
                         <span th:text="${group.category.label}">카페</span>
@@ -203,7 +220,9 @@
                 </div>
 
                 <div class="recommendations">
-                    <article class="recommendation-card" th:each="place, stat : ${group.recommendations}">
+                    <article class="recommendation-card"
+                             th:each="place, stat : ${group.recommendations}"
+                             th:attr="data-place-name=${place.areaName},data-category-name=${group.category.label},data-score=${place.score},data-average-distance=${place.averageDistanceKm},data-travel-minutes=${place.estimatedTravelMinutes}">
                         <div class="rank" th:text="${stat.index + 1}">1</div>
                         <div class="card-main">
                             <div class="title-line">
@@ -229,11 +248,14 @@
                             </div>
 
                             <div class="distances">
-                                <div th:each="distance : ${place.participantDistances}">
+                                <div class="distance-row" th:each="distance : ${place.participantDistances}" th:attr="data-distance=${distance.distanceKm}">
                                     <span th:text="${distance.name}">나</span>
                                     <b th:text="${distance.distanceKm} + 'km'">3.2km</b>
+                                    <i><em></em></i>
                                 </div>
                             </div>
+
+                            <button class="choose-button" type="button">이 장소로 정하기</button>
                         </div>
                     </article>
                 </div>
