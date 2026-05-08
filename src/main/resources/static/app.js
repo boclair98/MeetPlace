@@ -19,6 +19,14 @@ const participantCount = document.querySelector("#participantCount");
 const categoryCount = document.querySelector("#categoryCount");
 const selectedCategories = document.querySelector("#selectedCategories");
 const participantSummary = document.querySelector("#participantSummary");
+const bundleButtons = document.querySelectorAll("[data-bundle]");
+
+const categoryBundles = {
+  meal: ["RESTAURANT", "CAFE"],
+  play: ["PC_ROOM", "KARAOKE", "BOWLING"],
+  quiet: ["CAFE", "STUDY_ROOM"],
+  all: ["CAFE", "RESTAURANT", "PC_ROOM", "KARAOKE", "PUB", "STUDY_ROOM", "MOVIE", "BOWLING"]
+};
 
 function hydratePresetSelect(select) {
   if (select.dataset.ready) {
@@ -113,11 +121,25 @@ function createCard(index) {
       <strong>참가자 ${index + 1}</strong>
       <button class="remove-button" type="button">삭제</button>
     </div>
-    <label><span>이름</span><input type="text" name="participants[${index}].name" value="참가자 ${index + 1}"></label>
-    <label><span>출발 지역</span><select class="preset-select"><option value="">직접 입력</option></select></label>
+    <label>
+      <span>이름</span>
+      <input type="text" name="participants[${index}].name" value="참가자 ${index + 1}">
+    </label>
+    <label>
+      <span>출발 지역</span>
+      <select class="preset-select">
+        <option value="">직접 입력</option>
+      </select>
+    </label>
     <div class="coord-grid">
-      <label><span>위도</span><input class="latitude-input" type="number" step="0.0001" name="participants[${index}].latitude" value="37.5702"></label>
-      <label><span>경도</span><input class="longitude-input" type="number" step="0.0001" name="participants[${index}].longitude" value="126.9830"></label>
+      <label>
+        <span>위도</span>
+        <input class="latitude-input" type="number" step="0.0001" name="participants[${index}].latitude" value="37.5702">
+      </label>
+      <label>
+        <span>경도</span>
+        <input class="longitude-input" type="number" step="0.0001" name="participants[${index}].longitude" value="126.9830">
+      </label>
     </div>
   `;
   wireCard(card);
@@ -127,6 +149,15 @@ function createCard(index) {
 document.querySelectorAll(".participant-card").forEach(wireCard);
 document.querySelectorAll(".category-option input").forEach((input) => {
   input.addEventListener("change", updateSummary);
+});
+bundleButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const selectedValues = categoryBundles[button.dataset.bundle] || [];
+    document.querySelectorAll(".category-option input").forEach((input) => {
+      input.checked = selectedValues.includes(input.value);
+    });
+    updateSummary();
+  });
 });
 updateSummary();
 
