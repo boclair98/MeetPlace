@@ -180,7 +180,11 @@ function wireChooseButtons() {
   document.querySelectorAll(".choose-button").forEach((button) => {
     button.addEventListener("click", () => {
       const card = button.closest(".recommendation-card");
-      const text = `MeetPlace 추천: ${card.dataset.categoryName} 약속은 ${card.dataset.placeName} 어때요? 평균 이동거리 ${card.dataset.averageDistance}km, 예상 ${card.dataset.travelMinutes}분, 추천점수 ${card.dataset.score}점입니다.`;
+      const reviewText = Number(card.dataset.reviewCount || 0) > 0
+        ? ` 평점 ${card.dataset.rating}, 리뷰 ${card.dataset.reviewCount}개도 확인됐어요.`
+        : "";
+      const mapText = card.dataset.placeUrl ? ` ${card.dataset.placeUrl}` : "";
+      const text = `MeetPlace 추천: ${card.dataset.categoryName} 약속은 ${card.dataset.placeName} 어때요? 평균 이동거리 ${card.dataset.averageDistance}km, 예상 ${card.dataset.travelMinutes}분, 추천점수 ${card.dataset.score}점입니다.${reviewText}${mapText}`;
 
       document.querySelectorAll(".recommendation-card").forEach((item) => item.classList.remove("selected"));
       card.classList.add("selected");
