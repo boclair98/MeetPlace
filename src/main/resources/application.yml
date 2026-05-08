@@ -4,3 +4,11 @@ spring:
 
 server:
   port: 8081
+
+meetplace:
+  api:
+    search-radius-meters: 3500
+    kakao:
+      rest-key: ${KAKAO_REST_API_KEY:}
+    google:
+      places-key: ${GOOGLE_PLACES_API_KEY:}
