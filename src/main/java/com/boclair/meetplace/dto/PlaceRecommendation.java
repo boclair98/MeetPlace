@@ -15,6 +15,11 @@ public record PlaceRecommendation(
         String fairnessLevel,
         String reason,
         int score,
+        double rating,
+        int reviewCount,
+        String reviewSnippet,
+        String placeUrl,
+        String source,
         List<String> recommendedPlaceTypes,
         List<ParticipantDistance> participantDistances
 ) {
