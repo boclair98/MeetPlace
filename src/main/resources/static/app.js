@@ -20,6 +20,9 @@ const categoryCount = document.querySelector("#categoryCount");
 const selectedCategories = document.querySelector("#selectedCategories");
 const participantSummary = document.querySelector("#participantSummary");
 const bundleButtons = document.querySelectorAll("[data-bundle]");
+const sharePanel = document.querySelector("#sharePanel");
+const shareText = document.querySelector("#shareText");
+const copyShare = document.querySelector("#copyShare");
 
 const categoryBundles = {
   meal: ["RESTAURANT", "CAFE"],
@@ -146,6 +149,69 @@ function createCard(index) {
   return card;
 }
 
+function wireResultTabs() {
+  const tabs = document.querySelectorAll("[data-result-tab]");
+  const panels = document.querySelectorAll("[data-result-panel]");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((item) => item.classList.remove("active"));
+      panels.forEach((panel) => panel.classList.remove("active"));
+      tab.classList.add("active");
+      document.querySelector(`[data-result-panel="${tab.dataset.resultTab}"]`)?.classList.add("active");
+    });
+  });
+}
+
+function hydrateDistanceBars() {
+  document.querySelectorAll(".recommendation-card").forEach((card) => {
+    const rows = Array.from(card.querySelectorAll(".distance-row"));
+    const max = Math.max(...rows.map((row) => Number(row.dataset.distance || 0)), 1);
+
+    rows.forEach((row) => {
+      const distance = Number(row.dataset.distance || 0);
+      const fill = row.querySelector("em");
+      fill.style.width = `${Math.max((distance / max) * 100, 8)}%`;
+    });
+  });
+}
+
+function wireChooseButtons() {
+  document.querySelectorAll(".choose-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const card = button.closest(".recommendation-card");
+      const text = `MeetPlace 추천: ${card.dataset.categoryName} 약속은 ${card.dataset.placeName} 어때요? 평균 이동거리 ${card.dataset.averageDistance}km, 예상 ${card.dataset.travelMinutes}분, 추천점수 ${card.dataset.score}점입니다.`;
+
+      document.querySelectorAll(".recommendation-card").forEach((item) => item.classList.remove("selected"));
+      card.classList.add("selected");
+
+      sharePanel.classList.add("ready");
+      sharePanel.querySelector("b").textContent = `${card.dataset.placeName} 선택됨`;
+      shareText.textContent = text;
+      copyShare.disabled = false;
+    });
+  });
+}
+
+function wireCopyButton() {
+  if (!copyShare) {
+    return;
+  }
+
+  copyShare.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(shareText.textContent);
+      copyShare.textContent = "복사 완료";
+      setTimeout(() => {
+        copyShare.textContent = "공유 문구 복사";
+      }, 1500);
+    } catch (error) {
+      shareText.focus();
+      copyShare.textContent = "직접 복사해 주세요";
+    }
+  });
+}
+
 document.querySelectorAll(".participant-card").forEach(wireCard);
 document.querySelectorAll(".category-option input").forEach((input) => {
   input.addEventListener("change", updateSummary);
@@ -159,13 +225,20 @@ bundleButtons.forEach((button) => {
     updateSummary();
   });
 });
-updateSummary();
 
-addButton.addEventListener("click", () => {
-  const count = participants.querySelectorAll(".participant-card").length;
-  if (count >= 8) {
-    return;
-  }
-  participants.appendChild(createCard(count));
-  updateSummary();
-});
+if (addButton) {
+  addButton.addEventListener("click", () => {
+    const count = participants.querySelectorAll(".participant-card").length;
+    if (count >= 8) {
+      return;
+    }
+    participants.appendChild(createCard(count));
+    updateSummary();
+  });
+}
+
+updateSummary();
+wireResultTabs();
+hydrateDistanceBars();
+wireChooseButtons();
+wireCopyButton();
