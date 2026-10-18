@@ -8,3 +8,15 @@ out/
 
 .env
 application-local.yml
+# Local credentials and private data
+.env.*
+!.env.example
+.coders/
+*.key
+*.pem
+*.p12
+*.pfx
+*.sqlite*
+*.db
+*.log
+uploads/

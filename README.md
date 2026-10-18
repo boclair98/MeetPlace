@@ -105,3 +105,20 @@ src/main/java/com/boclair/meetplace
 - 대중교통, 도보, 차량 기준 예상 이동시간 계산
 - 사용자 로그인 후 즐겨찾기 장소와 최근 약속 기록 저장
 - 실제 매장 영업 여부, 혼잡도, 가격대 반영
+
+<!-- openui-release:start -->
+## UI 작업과 검증 (2026-10-18)
+
+여러 출발지의 중간 약속 장소 찾기: 참가자의 출발지와 만날 업종을 정해 이동 부담을 비교하고 후보 지역 확인.
+기존 스택과 API·인증·라우팅을 유지하면서 읽기 쉬운 로컬 약속 플래너, 기존 지도와 녹색 시각 언어 유지 방향으로 제목·본문·CTA·간격과 모바일 배치를 다듬었습니다.
+구체적인 근거, 토큰, 수정 경로와 OpenUI 입력은 [design.md](design.md)에 있습니다.
+
+- 빌드: `Gradle 8.14.3 test bootJar (JDK 17)` 통과.
+- 브라우저: 로컬 1440×900, 768×1024, 390×844, 360×800. 4크기 직접 검토, 폼·타입·CTA 가로 넘침 없음
+- 기능·키보드: 실제 Spring 서버에서 참가자 추가와 POST /recommend 확인; 좌표 계산 성공, 외부 장소 키 미설정 empty 안내 확인
+- 이번 변경에서 새로운 이용자 수·성과·고객 후기·공식 API 응답을 추가하지 않았습니다.
+
+기존·신규 UI 작업에는 [AGENTS.md](AGENTS.md)의 조사 → design.md → 구현 → PC·모바일·키보드 검증 순서를 적용합니다.
+OpenUI 원본은 [IamJimtheFish/openui](https://github.com/IamJimtheFish/openui), 이 저장소의 휴대 가능한 스킬은 `.agents/skills/openui/SKILL.md`입니다.
+실행·환경변수·외부 API 설정은 이 README의 기존 절차를 따릅니다. 실제 비밀값은 커밋하지 않습니다.
+<!-- openui-release:end -->
